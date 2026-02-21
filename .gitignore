@@ -1,5 +1,56 @@
+# Entornos virtuales
 venv/
+env/
+ENV/
+.venv
+
+# Archivos de dependencias
+*.egg-info/
+dist/
+build/
+
+# Variables de entorno
 .env
+.env.local
+
+# Datos sensibles y datasets
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.key
+*.pem
+
+# Modelos entrenados (pesados)
+data/models/*
+!data/models/.gitkeep
+
+# Notebooks con outputs
+notebooks/*.ipynb
+!notebooks/README.md
+
+# Logs y caches
+*.log
 __pycache__/
 *.pyc
-*.log
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Testing
+.pytest_cache/
