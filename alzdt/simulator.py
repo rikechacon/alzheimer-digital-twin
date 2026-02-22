@@ -4,7 +4,7 @@ Modela dinámicas de Aβ, tau, microglía y neuroinflamación
 """
 
 import numpy as np
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, trapezoid  # ✅ Compatible con NumPy 2.0
 from typing import Dict, Tuple, Optional, List
 from .connectivity import BrainConnectivityGraph
 
@@ -140,14 +140,16 @@ class ProteostasisSimulator:
         dt: float = 24.0,
         interventions: Optional[Dict[str, float]] = None
     ) -> Dict[str, np.ndarray]:
-        """Simula la dinámica de proteostasis"""
-        t_eval = np.arange(t_span[0], t_span[1] + dt, dt)
+        """Simula la dinámica de proteostasis - CORREGIDO para evitar errores de redondeo"""
+        # ✅ CORRECCIÓN: Usar linspace para garantizar que todos los puntos estén dentro de t_span
+        n_steps = int(np.ceil((t_span[1] - t_span[0]) / dt)) + 1
+        t_eval = np.linspace(t_span[0], t_span[1], n_steps)
         
         sol = solve_ivp(
             fun=lambda t, X: self.dynamics(t, X, interventions),
             t_span=t_span,
             y0=self.initial_state,
-            t_eval=t_eval,
+            t_eval=t_eval,  # ✅ Ahora garantizado dentro de t_span
             method='RK45',
             rtol=1e-6,
             atol=1e-9
@@ -176,9 +178,10 @@ class ProteostasisSimulator:
         treated: Dict[str, np.ndarray],
         metric: str = 'tau_entorhinal'
     ) -> float:
-        """Calcula beneficio de intervención"""
+        """Calcula beneficio de intervención - CORREGIDO para NumPy 2.0"""
         if metric == 'tau_entorhinal':
-            AUC_baseline = np.trapz(baseline['tau'][:, 0], baseline['time'])
-            AUC_treated = np.trapz(treated['tau'][:, 0], treated['time'])
+            # ✅ CORRECCIÓN: Reemplazar np.trapz con scipy.integrate.trapezoid
+            AUC_baseline = trapezoid(baseline['tau'][:, 0], baseline['time'])
+            AUC_treated = trapezoid(treated['tau'][:, 0], treated['time'])
             return (AUC_baseline - AUC_treated) / AUC_baseline * 100
         return 0.0
