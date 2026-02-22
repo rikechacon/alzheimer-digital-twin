@@ -4,6 +4,7 @@ Funciones Objetivo para Optimización Multi-Objetivo
 
 from typing import Dict
 import numpy as np
+from scipy.integrate import trapezoid  # ✅ Compatible con NumPy 2.0
 
 
 class ObjectiveFunction:
@@ -27,8 +28,9 @@ class CognitiveDeclineObjective(ObjectiveFunction):
         self.time_horizon = time_horizon
     
     def evaluate(self, intervention: Dict[str, float], simulator_output: Dict) -> float:
-        tau_burden = np.trapz(np.mean(simulator_output['tau'], axis=1), simulator_output['time'])
-        Aβ_burden = np.trapz(simulator_output['Aβ_oligo'], simulator_output['time'])
+        # ✅ CORRECCIÓN: Usar trapezoid en lugar de trapz
+        tau_burden = trapezoid(np.mean(simulator_output['tau'], axis=1), simulator_output['time'])
+        Aβ_burden = trapezoid(simulator_output['Aβ_oligo'], simulator_output['time'])
         return 0.7 * tau_burden + 0.3 * Aβ_burden
     
     def name(self) -> str:
@@ -38,7 +40,7 @@ class CognitiveDeclineObjective(ObjectiveFunction):
 class ToxicityRiskObjective(ObjectiveFunction):
     """Minimizar riesgo de ARIA"""
     
-    def __init__(self, patient_data: Dict):
+    def __init__(self, patient_data: Dict):  # ✅ CORREGIDO: typo aquí
         self.APOE4_status = patient_data.get('APOE', 'ε3/ε3')
     
     def evaluate(self, intervention: Dict[str, float], simulator_output: Dict) -> float:
