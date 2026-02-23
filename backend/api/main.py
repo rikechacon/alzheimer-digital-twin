@@ -1,12 +1,16 @@
 """
 API REST para Alzheimer Digital Twin - FastAPI
+Con integración de frontend visual
 """
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Dict, List, Optional
 import numpy as np
+import os
 
 # Importar módulos del núcleo científico
 try:
@@ -44,6 +48,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Servir archivos estáticos del frontend
+frontend_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public")
+app.mount("/static", StaticFiles(directory=os.path.join(frontend_dir, "css")), name="css")
+app.mount("/static", StaticFiles(directory=os.path.join(frontend_dir, "js")), name="js")
+app.mount("/static", StaticFiles(directory=os.path.join(frontend_dir, "assets")), name="assets")
+
+# Servir archivos de aprendizaje y procedimientos
+app.mount("/learning", StaticFiles(directory=os.path.join(frontend_dir, "learning")), name="learning")
+app.mount("/procedures", StaticFiles(directory=os.path.join(frontend_dir, "procedures")), name="procedures")
+
+# Ruta principal - servir index.html
+@app.get("/")
+async def root():
+    return FileResponse(os.path.join(frontend_dir, "index.html"))
+
 # Modelos Pydantic
 class PatientGenotype(BaseModel):
     APOE: str = "ε3/ε3"
@@ -74,16 +93,6 @@ class SimulationResponse(BaseModel):
     tau_entorhinal: List[float]
     cognitive_decline: float
     message: str
-
-@app.get("/")
-async def root():
-    return {
-        "project": "Alzheimer Digital Twin",
-        "version": "0.8.0",
-        "status": "operational" if CORE_AVAILABLE else "core_modules_unavailable",
-        "documentation": "/docs",
-        "message": "Preventing Alzheimer's before symptoms appear"
-    }
 
 @app.post("/simulate", response_model=SimulationResponse)
 async def simulate_proteostasis(request: SimulationRequest):
@@ -195,3 +204,12 @@ async def health_check():
         "core_modules": CORE_AVAILABLE,
         "numpy_version": np.__version__ if CORE_AVAILABLE else "unavailable"
     }
+
+# Rutas para recursos de aprendizaje y procedimientos
+@app.get("/learning")
+async def learning_root():
+    return FileResponse(os.path.join(frontend_dir, "learning", "index.html"))
+
+@app.get("/procedures")
+async def procedures_root():
+    return FileResponse(os.path.join(frontend_dir, "procedures", "index.html"))

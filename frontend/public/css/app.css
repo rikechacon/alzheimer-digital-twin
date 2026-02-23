@@ -1,0 +1,93 @@
+:root {
+    --primary: #1890ff;
+    --secondary: #52c41a;
+    --warning: #fa8c16;
+    --danger: #f5222d;
+    --light: #f0f2f5;
+    --dark: #141414;
+}
+
+.header {
+    background: linear-gradient(135deg, #1890ff, #0050b3);
+    color: white;
+    padding: 1.5rem 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background: linear-gradient(to right, #f0f2f5, #e6f7ff);
+    border-bottom: 1px solid #e0e0e0;
+    padding: 1.2rem 1.5rem;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+.chart-container {
+    height: 300px;
+    margin-top: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1890ff, #0050b3);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(24, 144, 255, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0050b3, #1890ff);
+}
+
+.risk-indicator {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.risk-low { background: #e6ffed; color: #52c41a; }
+.risk-medium { background: #fff7e6; color: #fa8c16; }
+.risk-high { background: #fff1f1; color: #f5222d; }
+
+.resource-card, .procedure-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+}
+
+.resource-card:hover, .procedure-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: #0050b3;
+}
