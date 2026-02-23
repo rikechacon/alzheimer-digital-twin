@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
+    container_name: alzdt-api-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../..:/app
+      - ./logs:/app/logs
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=True
+    command: uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - alzdt-network
+
+  frontend:
+    image: node:18-alpine
+    container_name: alzdt-frontend-dev
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    command: sh -c "npm install && npm run dev"
+    networks:
+      - alzdt-network
+    depends_on:
+      - api
+
+networks:
+  alzdt-network:
+    driver: bridge
