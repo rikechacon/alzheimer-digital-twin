@@ -1,5 +1,4 @@
-```bash
-cat > README.md << 'EOF'
+
 # 🧠 Alzheimer Digital Twin
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -463,25 +462,4 @@ ls -la
 
 ---
 
-## 🚀 Subir Cambios al Repositorio
-
-```bash
-# Añadir cambios
-git add README.md
-
-# Commit con mensaje descriptivo
-git commit -m "docs: README.md completo y profesional
-
-- Reemplazado README escueto con versión completa y atractiva
-- Corregida sección de estructura del proyecto (eliminado src/ inexistente)
-- Añadida descripción detallada del proyecto y visión/misión
-- Incluidos ejemplos de uso con código real
-- Agregada información sobre contribución, licencia y contacto
-- Diseño profesional con badges, diagramas y secciones organizadas
-- README ahora refleja fielmente la estructura real del proyecto"
-
-# Sincronizar con remoto
-git pull origin main --rebase
-git push origin main
-```
 
