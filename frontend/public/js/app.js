@@ -1,27 +1,36 @@
 // Función para ejecutar simulación
 function runSimulation() {
-    const patientProfile = document.getElementById('patient-profile').value;
-    const pTau217 = parseFloat(document.getElementById('p-tau217').value);
-    const abetaRatio = parseFloat(document.getElementById('abeta-ratio').value);
-    const duration = parseInt(document.getElementById('duration').value);
-    
-    // Obtener intervenciones seleccionadas
-    const interventions = {
-        anti_Aβ: document.getElementById('intervention1').checked ? 1.0 : 0.0,
-        TREM2_agonist: document.getElementById('intervention2').checked ? 0.8 : 0.0,
-        anti_tau: document.getElementById('intervention3').checked ? 0.5 : 0.0,
-        anti_inflammatory: document.getElementById('intervention4').checked ? 0.5 : 0.0
-    };
-    
     // Mostrar mensaje de carga
     const resultsSection = document.getElementById('results-section');
     resultsSection.style.display = 'block';
-    document.getElementById('tau-result').textContent = 'Calculando...';
-    document.getElementById('abeta-result').textContent = 'Calculando...';
-    document.getElementById('benefit-result').textContent = 'Calculando...';
-    document.getElementById('baseline-result').textContent = 'Calculando...';
+    document.getElementById('tau-result').textContent = 'Cargando...';
+    document.getElementById('abeta-result').textContent = 'Cargando...';
+    document.getElementById('benefit-result').textContent = 'Cargando...';
+    document.getElementById('baseline-result').textContent = 'Cargando...';
     
-    // Simular llamada a API (en producción, usar fetch real)
+    // Simular llamada a API
+    const formData = {
+        patient: {
+            age: 65,
+            genotype: {
+                APOE: "ε4/ε4",
+                TREM2: "WT",
+                SORL1: "WT",
+                MAPT: "H1/H1"
+            },
+            p_tau217: 3.5,
+            centiloids: 35.0
+        },
+        interventions: {
+            anti_Aβ: 1.0,
+            TREM2_agonist: 0.8,
+            anti_tau: 0.0,
+            anti_inflammatory: 0.5
+        },
+        duration_days: 1825
+    };
+    
+    // Simular llamada a API
     setTimeout(() => {
         // Resultados simulados
         const tauFinal = 17.75;
@@ -35,7 +44,16 @@ function runSimulation() {
         document.getElementById('baseline-result').textContent = baselineIncrease;
         
         // Actualizar gráfico
-        updateChart(tauFinal, abetaFinal, duration);
+        updateChart(tauFinal, abetaFinal, 1825);
+        
+        // Mostrar recomendación
+        const recommendation = document.getElementById('recommendation');
+        recommendation.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Intervención preventiva inmediata</strong> - Recomendado: Lecanemab + TREM2 agonist
+            </div>
+        `;
     }, 1500);
 }
 
