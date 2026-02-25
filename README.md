@@ -293,6 +293,7 @@ alzheimer-digital-twin/
 ├── LICENSE                         # Licencia Apache 2.0
 └── README.md                       # Este archivo
 
+```
 
 ---
 
