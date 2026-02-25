@@ -5,7 +5,7 @@ API REST para Alzheimer Digital Twin - FastAPI (versión funcional)
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Dict, List, Optional
 import numpy as np
@@ -15,14 +15,6 @@ import os
 try:
     from alzdt.simulator import ProteostasisSimulator, ProteostasisParameters
     from alzdt.connectivity import BrainConnectivityGraph
-    from alzdt.optimizer import MultiObjectiveOptimizer
-    from alzdt.objectives import (
-        CognitiveDeclineObjective,
-        ToxicityRiskObjective,
-        CostObjective,
-        PatientBurdenObjective
-    )
-    from alzdt.utils import risk_stratification
     CORE_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️  Módulos científicos no disponibles: {e}")
@@ -50,33 +42,28 @@ app.add_middleware(
 # Directorio del frontend
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public")
 
-# Servir archivos estáticos
-app.mount("/static", StaticFiles(directory=os.path.join(frontend_dir, "css")), name="css")
-app.mount("/static", StaticFiles(directory=os.path.join(frontend_dir, "js")), name="js")
+# Servir recursos estáticos correctamente
+app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
-# Rutas para recursos
-@app.get("/learning")
-async def learning_root():
-    return FileResponse(os.path.join(frontend_dir, "learning", "index.html"))
+# Rutas de redirección útiles
+@app.get("/api")
+async def redirect_api():
+    return RedirectResponse(url="/docs")
 
-@app.get("/procedures")
-async def procedures_root():
-    return FileResponse(os.path.join(frontend_dir, "procedures", "index.html"))
+@app.get("/documentation")
+async def redirect_docs():
+    return RedirectResponse(url="/docs")
 
-@app.get("/docs")
-async def docs_root():
-    return FileResponse(os.path.join(frontend_dir, "docs", "index.html"))
-
-@app.get("/clinical-protocol")
-async def clinical_protocol_root():
-    return FileResponse(os.path.join(frontend_dir, "clinical-protocol", "index.html"))
+@app.get("/simulations")
+async def redirect_simulations():
+    return RedirectResponse(url="/")
 
 # Ruta principal - servir index.html
 @app.get("/")
 async def root():
-    # Crear index.html mínimo si no existe
     index_path = os.path.join(frontend_dir, "index.html")
     if not os.path.exists(index_path):
+        # Crear index.html mínimo si no existe
         with open(index_path, 'w') as f:
             f.write('''
 <!DOCTYPE html>
@@ -85,8 +72,8 @@ async def root():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alzheimer Digital Twin - Dashboard Clínico</title>
-    <link rel="stylesheet" href="/static/app.css">
-    <script src="/static/app.js"></script>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <script src="/static/js/app.js"></script>
 </head>
 <body>
     <div class="header">
@@ -102,7 +89,7 @@ async def root():
         
         <div class="card">
             <h3>🧪 Ejecutar Simulación</h3>
-            <button class="btn-primary" onclick="runSimulation()">Ejecutar Simulación de Prueba</button>
+            <p>Accede a la API en <a href="/docs">/docs</a> para probar el endpoint <strong>POST /simulate</strong></p>
         </div>
         
         <div class="card">
@@ -121,7 +108,6 @@ async def root():
                 <li>Explorar API en <a href="/docs">/docs</a> (Swagger UI)</li>
                 <li>Ejecutar simulación con datos reales</li>
                 <li>Probar optimización multi-objetivo</li>
-                <li>Validar contra cohortes ADNI/BioFINDER</li>
             </ol>
         </div>
     </div>
@@ -129,6 +115,19 @@ async def root():
 </html>
             ''')
     return FileResponse(index_path)
+
+# Rutas para recursos
+@app.get("/learning")
+async def learning_root():
+    return FileResponse(os.path.join(frontend_dir, "learning", "index.html"))
+
+@app.get("/procedures")
+async def procedures_root():
+    return FileResponse(os.path.join(frontend_dir, "procedures", "index.html"))
+
+@app.get("/clinical-protocol")
+async def clinical_protocol_root():
+    return FileResponse(os.path.join(frontend_dir, "clinical-protocol", "index.html"))
 
 # Modelos Pydantic
 class PatientGenotype(BaseModel):
@@ -170,7 +169,7 @@ async def simulate_proteostasis(request: SimulationRequest):
         )
     
     try:
-        # Configurar simulador
+        # Configurar simulador con datos del paciente
         params = ProteostasisParameters(
             genotype=request.patient.genotype.dict(),
             age=float(request.patient.age)
@@ -178,7 +177,7 @@ async def simulate_proteostasis(request: SimulationRequest):
         connectivity = BrainConnectivityGraph(atlas='AAL')
         simulator = ProteostasisSimulator(params, connectivity)
         
-        # Ejecutar simulación
+        # Ejecutar simulación con intervenciones
         interventions = request.interventions.dict() if request.interventions else None
         results = simulator.simulate(
             t_span=(0, request.duration_days),
@@ -187,7 +186,7 @@ async def simulate_proteostasis(request: SimulationRequest):
         )
         
         # Calcular declive cognitivo estimado
-        cognitive_decline = np.trapz(results['tau'][:, 0], results['time']) * 0.1
+        cognitive_decline = np.trapezoid(results['tau'][:, 0], results['time']) * 0.1
         
         return SimulationResponse(
             time_days=results['time'].tolist(),
@@ -199,70 +198,6 @@ async def simulate_proteostasis(request: SimulationRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en simulación: {str(e)}")
-
-@app.post("/optimize")
-async def optimize_interventions(patient: PatientData):
-    if not CORE_AVAILABLE:
-        raise HTTPException(status_code=503, detail="Módulos científicos no disponibles")
-    
-    try:
-        # Configurar simulador mínimo
-        params = ProteostasisParameters(
-            genotype=patient.genotype.dict(),
-            age=float(patient.age)
-        )
-        connectivity = BrainConnectivityGraph(atlas='AAL')
-        simulator = ProteostasisSimulator(params, connectivity)
-        
-        # Definir espacio de intervenciones
-        intervention_space = {
-            'anti_Aβ': (0.0, 1.5),
-            'TREM2_agonist': (0.0, 1.2),
-            'anti_tau': (0.0, 1.0),
-            'anti_inflammatory': (0.0, 1.0)
-        }
-        
-        # Configurar objetivos
-        objectives = [
-            CognitiveDeclineObjective(simulator),
-            ToxicityRiskObjective(patient_data={'APOE': patient.genotype.APOE}),
-            CostObjective({
-                'anti_Aβ': 4500,
-                'TREM2_agonist': 2800,
-                'anti_tau': 6000,
-                'anti_inflammatory': 1200
-            }),
-            PatientBurdenObjective()
-        ]
-        
-        # Ejecutar optimización
-        optimizer = MultiObjectiveOptimizer(
-            objectives=objectives,
-            intervention_space=intervention_space,
-            simulator=simulator,
-            population_size=30,
-            n_generations=30
-        )
-        results = optimizer.optimize()
-        
-        return {
-            "pareto_solutions": results['pareto_front'],
-            "objective_values": results['objective_values'].tolist(),
-            "message": results.get('message', 'Optimización completada')
-        }
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en optimización: {str(e)}")
-
-@app.post("/risk-stratification")
-async def stratify_risk(patient: PatientData):
-    result = risk_stratification(
-        age=patient.age,
-        APOE=patient.genotype.APOE,
-        p_tau217=patient.p_tau217,
-        centiloids=patient.centiloids
-    )
-    return result
 
 @app.get("/health")
 async def health_check():
