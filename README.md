@@ -79,13 +79,14 @@ flowchart TD
     F --> H[Paciente + Dispositivos]
     
     H --> A
-```
-
----
     
     style C fill:#e6f7ff,stroke:#1890ff,stroke-width:2px
     style G fill:#f6ffed,stroke:#52c41a
     style H fill:#fff7e6,stroke:#fa8c16
+```
+
+---
+
 🔬 Tipo de Modelo
 El Alzheimer Digital Twin es un sistema híbrido multimodal que integra:
 Componentes principales:
@@ -172,12 +173,14 @@ graph LR
     H --> I
     I --> J[Validación Re-identificación]
     J --> K[Dataset Seguro para ML]
+  	
 ```
 
 ---
-Para más detalles, ver PRIVACY_AND_STANDARDS.md
+
+## Para más detalles, ver PRIVACY_AND_STANDARDS.md
 ________________________________________
-🚀 Instalación
+> 🚀 Instalación
 Requisitos Previos
 Bash
 # Python 3.11+ requerido
