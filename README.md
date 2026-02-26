@@ -396,10 +396,8 @@ Este es un **prototipo de investigación**. **NO** usar para decisiones clínica
 
 | Canal | Propósito |
 |-------|-----------|
-| 📧 **alzdt.collab@digitaltwin.org** | Colaboraciones científicas |
-| 💼 **partnerships@digitaltwin.org** | Alianzas empresariales |
-| 💰 **investors@digitaltwin.org** | Oportunidades de inversión |
-| 🔒 **privacy@alzheimer-digital-twin.org** | Privacidad y seguridad |
+| 📧 **rikechaconpi@gmail.com** | Colaboraciones científicas, Alianzas empresariales, Oportunidades de inversión |
+| 
 | 🌐 **[Discord Comunitario](https://discord.gg/alzdt)** | Soporte técnico y desarrollo |
 
 ---
