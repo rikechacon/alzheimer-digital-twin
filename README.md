@@ -135,6 +135,7 @@ python scripts/validate_model.py --n-patients 100 --verbose
 
 # Ver resultados
 cat validation_results.json
+EOF
 Resultado esperado:
 json
 {
@@ -158,7 +159,7 @@ Utilizamos técnicas avanzadas de anonimización:
 2.	Diferencial Privacidad (ε=0.5): Ruido controlado para protección individual
 3.	Tokenización AES-256: Reemplazo de identificadores con tokens criptográficos
 Proceso de Anonimización
-Mermaid
+```mermaid
 graph LR
     A[Datos Crudos EHR] --> B{Identificadores Directos}
     B -->|Eliminar| C[18 Identificadores HIPAA]
@@ -173,14 +174,11 @@ graph LR
     H --> I
     I --> J[Validación Re-identificación]
     J --> K[Dataset Seguro para ML]
-  	
 ```
-
 ---
-
 ## Para más detalles, ver PRIVACY_AND_STANDARDS.md
 ________________________________________
-> 🚀 Instalación
+🚀 Instalación
 Requisitos Previos
 Bash
 # Python 3.11+ requerido
