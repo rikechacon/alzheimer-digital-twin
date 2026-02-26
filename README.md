@@ -83,6 +83,8 @@ flowchart TD
     style C fill:#e6f7ff,stroke:#1890ff,stroke-width:2px
     style G fill:#f6ffed,stroke:#52c41a
     style H fill:#fff7e6,stroke:#fa8c16
+```
+---
 🔬 Tipo de Modelo
 El Alzheimer Digital Twin es un sistema híbrido multimodal que integra:
 Componentes principales:
