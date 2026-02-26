@@ -343,16 +343,29 @@ Publicaciones Fundamentales
 1.	Jack CR, et al. (2023). NIA-AA Research Framework. Alzheimer's & Dementia.
 2.	Cummings J, et al. (2025). Lecanemab in Early Alzheimer's Disease. NEJM.
 3.	Gomez A, et al. (2025). Physiological Digital Twins for Neurodegenerative Diseases. Nature Digital Medicine.
+
+## 📚 Citación
+Si utiliza este trabajo en investigación:
+```bibtex
+@software{alzdt2026,
+  author = {Alzheimer Digital Twin Consortium},
+  title = {Alzheimer Digital Twin: Cyber-Physical-Biological System for Personalized Alzheimer's Prevention},
+  year = {2026},
+  version = {0.8.0},
+  url = {https://github.com/rikechacon/alzheimer-digital-twin},
+  }
+```
+---
 ________________________________________
 "La mejor intervención para el Alzheimer no es la más potente, sino la más temprana.
 Este proyecto no es sobre tecnología: es sobre devolver tiempo a las familias."
 — Equipo Alzheimer Digital Twin, Febrero 2026
 ⭐ Si este proyecto inspira tu trabajo, por favor dale una estrella en GitHub. Cada estrella acelera nuestro camino hacia ensayos clínicos reales. ⭐
 
- 
-
+[![GitHub Star](https://img.shields.io/github/stars/rikechacon/alzheimer-digital-twin?style=social)](https://github.com/rikechacon/alzheimer-digital-twin/stargazers)
+---
 ________________________________________
 Este repositorio es parte de una iniciativa global sin fines de lucro.
 Todos los fondos recaudados se destinan íntegramente a investigación y acceso equitativo.
-🌍 Juntos, hagamos del Alzheimer una enfermedad del pasado. 🌍 EOF
+🌍 Juntos, hagamos del Alzheimer una enfermedad del pasado. 🌍 
 
