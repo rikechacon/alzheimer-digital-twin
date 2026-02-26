@@ -1,3 +1,4 @@
+
 # 🧠 Alzheimer Digital Twin
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -87,57 +88,77 @@ flowchart TD
 
 ---
 
-🔬 Tipo de Modelo
-El Alzheimer Digital Twin es un sistema híbrido multimodal que integra:
-Componentes principales:
-1.	Simulación Física (Modelo ODE Estocástico)
-o	Base: Ecuaciones diferenciales ordinarias estocásticas
-o	Modulación genética: APOE, TREM2, SORL1
-o	Simula dinámicas de Aβ, tau, microglía y neuroinflamación
-o	Propagación espacial mediante grafo de conectividad cerebral
-2.	Componentes Predictivos
-o	Modelos bayesianos para incertidumbre
-o	Redes neuronales para patrones complejos
-o	Algoritmos de optimización multi-objetivo (NSGA-III)
-3.	Validación Clínica
-o	Protocolo ADT-VALIDATE (ensayo prospectivo N=1200)
-o	Comparación con cohortes públicas (ADNI, BioFINDER)
-Respuesta clara: Es principalmente una simulación física basada en modelos mecanicistas, con componentes predictivos y de optimización para personalización.
-________________________________________
-📊 Validación y Métricas
-Métricas de Validación Clínica
+## 🔬 Tipo de Modelo
+
+El Alzheimer Digital Twin es un **sistema híbrido multimodal** que integra:
+
+### Componentes principales:
+
+1. **Simulación Física (Modelo ODE Estocástico)**
+   - Base: Ecuaciones diferenciales ordinarias estocásticas
+   - Modulación genética: APOE, TREM2, SORL1
+   - Simula dinámicas de Aβ, tau, microglía y neuroinflamación
+   - Propagación espacial mediante grafo de conectividad cerebral
+
+2. **Componentes Predictivos**
+   - Modelos bayesianos para incertidumbre
+   - Redes neuronales para patrones complejos
+   - Algoritmos de optimización multi-objetivo (NSGA-III)
+
+3. **Validación Clínica**
+   - Protocolo ADT-VALIDATE (ensayo prospectivo N=1200)
+   - Comparación con cohortes públicas (ADNI, BioFINDER)
+
+**Respuesta clara**: Es principalmente una **simulación física basada en modelos mecanicistas**, con componentes predictivos y de optimización para personalización.
+
+---
+
+## 📊 Validación y Métricas
+
+### Métricas de Validación Clínica
+
 Nuestro sistema se valida mediante comparación con cohortes históricas reales y ensayos clínicos prospectivos:
-Métrica	Valor	Método de Validación	Estado
-RMSE Tau	0.42 nM	Comparación con PET tau en ADNI	✅ Aceptable
-RMSE Aβ	0.03 nM	Comparación con Aβ-PET en BioFINDER	✅ Aceptable
-R² Tau	0.85	Validación contra datos históricos	✅ Aceptable
-R² Aβ	0.78	Validación contra datos históricos	✅ Aceptable
-AUC Riesgo	0.87	Predicción de conversión a MCI en 3 años	✅ Aceptable
-F1 Score	0.81	Clasificación de conversión MCI	✅ Aceptable
-Validación Clínica en Curso
-Nuestro protocolo de validación clínica ADT-VALIDATE incluye:
-1.	Validación retrospectiva:
-o	Comparación con cohortes históricas (ADNI, BioFINDER)
-o	Backtesting contra datos reales de 5 años
-o	Análisis de errores y sesgos
-2.	Validación prospectiva:
-o	Ensayo clínico prospectivo (N=1200, 24 meses)
-o	Comparación de progresión simulada vs. real
-o	Validación de predicciones de riesgo
-3.	Validación en tiempo real:
-o	Monitoreo continuo de pacientes
-o	Ajuste de modelos con nuevos datos
-o	Validación de intervenciones preventivas
-Ejecutar Validación Localmente
-bash
+
+| Métrica | Valor | Método de Validación | Estado |
+|---------|-------|---------------------|--------|
+| **RMSE Tau** | 0.42 nM | Comparación con PET tau en ADNI | ✅ Aceptable |
+| **RMSE Aβ** | 0.03 nM | Comparación con Aβ-PET en BioFINDER | ✅ Aceptable |
+| **R² Tau** | 0.85 | Validación contra datos históricos | ✅ Aceptable |
+| **R² Aβ** | 0.78 | Validación contra datos históricos | ✅ Aceptable |
+| **AUC Riesgo** | 0.87 | Predicción de conversión a MCI en 3 años | ✅ Aceptable |
+| **F1 Score** | 0.81 | Clasificación de conversión MCI | ✅ Aceptable |
+
+### Validación Clínica en Curso
+
+Nuestro protocolo de validación clínica **ADT-VALIDATE** incluye:
+
+1. **Validación retrospectiva**:
+   - Comparación con cohortes históricas (ADNI, BioFINDER)
+   - Backtesting contra datos reales de 5 años
+   - Análisis de errores y sesgos
+
+2. **Validación prospectiva**:
+   - Ensayo clínico prospectivo (N=1200, 24 meses)
+   - Comparación de progresión simulada vs. real
+   - Validación de predicciones de riesgo
+
+3. **Validación en tiempo real**:
+   - Monitoreo continuo de pacientes
+   - Ajuste de modelos con nuevos datos
+   - Validación de intervenciones preventivas
+
+### Ejecutar Validación Localmente
+
+```bash
 # Generar datos sintéticos y validar modelo
 python scripts/validate_model.py --n-patients 100 --verbose
 
 # Ver resultados
 cat validation_results.json
-EOF
-Resultado esperado:
-json
+```
+
+**Resultado esperado:**
+```json
 {
   "rmse_tau": 0.42,
   "rmse_abeta": 0.03,
@@ -146,19 +167,30 @@ json
   "f1_score": 0.81,
   "n_patients": 20,
   "status": "VALIDATION_COMPLETE"
-}________________________________________
-🔒 Privacidad y Estándares
-Estándares Implementados
-•	FHIR 4.0.1: Estructura de datos para interoperabilidad clínica
-•	HIPAA Safe Harbor: Eliminación de 18 identificadores
-•	ISO/IEC 20889: Estándar de privacidad para datos de salud
-•	GDPR Compliance: Protección de datos europea
-Anonimización de Datos
+}
+```
+
+---
+
+## 🔒 Privacidad y Estándares
+
+### Estándares Implementados
+
+- **FHIR 4.0.1**: Estructura de datos para interoperabilidad clínica
+- **HIPAA Safe Harbor**: Eliminación de 18 identificadores
+- **ISO/IEC 20889**: Estándar de privacidad para datos de salud
+- **GDPR Compliance**: Protección de datos europea
+
+### Anonimización de Datos
+
 Utilizamos técnicas avanzadas de anonimización:
-1.	k-Anonimidad (k=50): Cada combinación de atributos aparece ≥50 veces
-2.	Diferencial Privacidad (ε=0.5): Ruido controlado para protección individual
-3.	Tokenización AES-256: Reemplazo de identificadores con tokens criptográficos
-Proceso de Anonimización
+
+1. **k-Anonimidad (k=50)**: Cada combinación de atributos aparece ≥50 veces
+2. **Diferencial Privacidad (ε=0.5)**: Ruido controlado para protección individual
+3. **Tokenización AES-256**: Reemplazo de identificadores con tokens criptográficos
+
+### Proceso de Anonimización
+
 ```mermaid
 graph LR
     A[Datos Crudos EHR] --> B{Identificadores Directos}
@@ -175,19 +207,26 @@ graph LR
     I --> J[Validación Re-identificación]
     J --> K[Dataset Seguro para ML]
 ```
+
+Para más detalles, ver [PRIVACY_AND_STANDARDS.md](docs/PRIVACY_AND_STANDARDS.md)
+
 ---
-## Para más detalles, ver PRIVACY_AND_STANDARDS.md
-________________________________________
-🚀 Instalación
-Requisitos Previos
-Bash
+
+## 🚀 Instalación
+
+### Requisitos Previos
+
+```bash
 # Python 3.11+ requerido
 python --version  # Debe ser >= 3.11
 
 # Sistema operativo compatible
 # Linux (recomendado), macOS 12+, Windows 10+ (WSL2)
-Instalación Paso a Paso
-bash
+```
+
+### Instalación Paso a Paso
+
+```bash
 # 1. Clonar repositorio
 git clone https://github.com/rikechacon/alzheimer-digital-twin.git
 cd alzheimer-digital-twin
@@ -206,10 +245,15 @@ cp .env.example .env
 
 # 5. Validar instalación
 python -m pytest tests/ -v --tb=short
-________________________________________
-💻 Uso Básico
-Iniciar el servidor FastAPI
-bash
+```
+
+---
+
+## 💻 Uso Básico
+
+### Iniciar el servidor FastAPI
+
+```bash
 # Activar entorno virtual (SIEMPRE necesario antes de usar uvicorn)
 source venv/bin/activate
 
@@ -220,8 +264,11 @@ uvicorn backend.api.main:app --reload --host 0.0.0.0 --port 8000
 # - Dashboard: http://localhost:8000/
 # - API Docs: http://localhost:8000/docs
 # - Recursos: http://localhost:8000/learning
-Ejemplo: Simulación de Proteostasis
-python
+```
+
+### Ejemplo: Simulación de Proteostasis
+
+```python
 from alzdt.simulator import ProteostasisSimulator, ProteostasisParameters
 from alzdt.connectivity import BrainConnectivityGraph
 
@@ -246,8 +293,13 @@ treated = simulator.simulate(t_span=(0, 365*10), dt=24.0, interventions=interven
 # Calcular beneficio
 benefit = simulator.calculate_benefit(baseline, treated, metric='tau_entorhinal')
 print(f"Reducción en carga tau: {benefit:.1f}%")
-________________________________________
-📂 Estructura del Proyecto
+```
+
+---
+
+## 📂 Estructura del Proyecto
+
+```
 alzheimer-digital-twin/
 │
 ├── alzdt/                          # Paquete principal de Python
@@ -304,69 +356,82 @@ alzheimer-digital-twin/
 ├── CONTRIBUTING.md                 # Guía para contribuir
 ├── LICENSE                         # Licencia Apache 2.0
 └── README.md                       # Este archivo
-________________________________________
-🤝 Contribución
-¡Contribuciones de todo tipo son bienvenidas! Para contribuir:
-1.	Fork el repositorio
-2.	Crea una rama para tu feature (git checkout -b feature/AmazingFeature)
-3.	Haz commit de tus cambios (git commit -m 'Add some AmazingFeature')
-4.	Push a la rama (git push origin feature/AmazingFeature)
-5.	Abre un Pull Request
-Áreas de Contribución Necesarias
-•	🧪 Validación científica: Comparación con cohortes públicas (ADNI, BioFINDER)
-•	🌐 Internacionalización: Traducción del dashboard a múltiples idiomas
-•	📱 Mobile: App para pacientes con monitoreo de adherencia
-•	🤖 ML avanzado: Mejora de surrogate models con transformers
-•	📊 Visualización: Nuevos componentes para dashboard clínico
-________________________________________
-📜 Licencia
-Este proyecto está bajo la Licencia Apache 2.0 - ver el archivo LICENSE para detalles.
-________________________________________
-⚠️ Advertencia Importante
-Este es un prototipo de investigación. NO usar para decisiones clínicas reales sin validación regulatoria. Consulte siempre con profesionales de salud certificados.
-________________________________________
-📬 Contacto
-Canal	Propósito
-📧 alzdt.collab@digitaltwin.org	Colaboraciones científicas
-💼 partnerships@digitaltwin.org	Alianzas empresariales
-💰 investors@digitaltwin.org	Oportunidades de inversión
-🔒 privacy@alzheimer-digital-twin.org	Privacidad y seguridad
-🌐 Discord Comunitario
-Soporte técnico y desarrollo
-________________________________________
-🙏 Agradecimientos
-Este proyecto se basa en investigaciones y datasets de:
-•	Global Alzheimer's Platform Foundation
-•	Alzheimer's Association International Society
-•	NIH National Institute on Aging (NIA)
-•	European Prevention of Alzheimer's Dementia (EPAD) Consortium
-Publicaciones Fundamentales
-1.	Jack CR, et al. (2023). NIA-AA Research Framework. Alzheimer's & Dementia.
-2.	Cummings J, et al. (2025). Lecanemab in Early Alzheimer's Disease. NEJM.
-3.	Gomez A, et al. (2025). Physiological Digital Twins for Neurodegenerative Diseases. Nature Digital Medicine.
-
-## 📚 Citación
-Si utiliza este trabajo en investigación:
-```bibtex
-@software{alzdt2026,
-  author = {Alzheimer Digital Twin Consortium},
-  title = {Alzheimer Digital Twin: Cyber-Physical-Biological System for Personalized Alzheimer's Prevention},
-  year = {2026},
-  version = {0.8.0},
-  url = {https://github.com/rikechacon/alzheimer-digital-twin},
-  }
 ```
+
 ---
-________________________________________
-"La mejor intervención para el Alzheimer no es la más potente, sino la más temprana.
-Este proyecto no es sobre tecnología: es sobre devolver tiempo a las familias."
-— Equipo Alzheimer Digital Twin, Febrero 2026
-⭐ Si este proyecto inspira tu trabajo, por favor dale una estrella en GitHub. Cada estrella acelera nuestro camino hacia ensayos clínicos reales. ⭐
+
+## 🤝 Contribución
+
+¡Contribuciones de todo tipo son bienvenidas! Para contribuir:
+
+1. **Fork** el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Haz commit de tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un **Pull Request**
+
+### Áreas de Contribución Necesarias
+
+- 🧪 **Validación científica**: Comparación con cohortes públicas (ADNI, BioFINDER)
+- 🌐 **Internacionalización**: Traducción del dashboard a múltiples idiomas
+- 📱 **Mobile**: App para pacientes con monitoreo de adherencia
+- 🤖 **ML avanzado**: Mejora de surrogate models con transformers
+- 📊 **Visualización**: Nuevos componentes para dashboard clínico
+
+---
+
+## 📜 Licencia
+
+Este proyecto está bajo la Licencia Apache 2.0 - ver el archivo [LICENSE](LICENSE) para detalles.
+
+---
+
+## ⚠️ Advertencia Importante
+
+Este es un **prototipo de investigación**. **NO** usar para decisiones clínicas reales sin validación regulatoria. Consulte siempre con profesionales de salud certificados.
+
+---
+
+## 📬 Contacto
+
+| Canal | Propósito |
+|-------|-----------|
+| 📧 **alzdt.collab@digitaltwin.org** | Colaboraciones científicas |
+| 💼 **partnerships@digitaltwin.org** | Alianzas empresariales |
+| 💰 **investors@digitaltwin.org** | Oportunidades de inversión |
+| 🔒 **privacy@alzheimer-digital-twin.org** | Privacidad y seguridad |
+| 🌐 **[Discord Comunitario](https://discord.gg/alzdt)** | Soporte técnico y desarrollo |
+
+---
+
+## 🙏 Agradecimientos
+
+Este proyecto se basa en investigaciones y datasets de:
+- *Global Alzheimer's Platform Foundation*
+- *Alzheimer's Association International Society*
+- *NIH National Institute on Aging (NIA)*
+- *European Prevention of Alzheimer's Dementia (EPAD) Consortium*
+
+### Publicaciones Fundamentales
+1. Jack CR, et al. (2023). *NIA-AA Research Framework*. Alzheimer's & Dementia.
+2. Cummings J, et al. (2025). *Lecanemab in Early Alzheimer's Disease*. NEJM.
+3. Gomez A, et al. (2025). *Physiological Digital Twins for Neurodegenerative Diseases*. Nature Digital Medicine.
+
+---
+
+> **"La mejor intervención para el Alzheimer no es la más potente, sino la más temprana.  
+> Este proyecto no es sobre tecnología: es sobre devolver tiempo a las familias."**  
+> — Equipo Alzheimer Digital Twin, Febrero 2026
+
+⭐ **Si este proyecto inspira tu trabajo, por favor dale una estrella en GitHub. Cada estrella acelera nuestro camino hacia ensayos clínicos reales.** ⭐
 
 [![GitHub Star](https://img.shields.io/github/stars/rikechacon/alzheimer-digital-twin?style=social)](https://github.com/rikechacon/alzheimer-digital-twin/stargazers)
+
 ---
-________________________________________
-Este repositorio es parte de una iniciativa global sin fines de lucro.
-Todos los fondos recaudados se destinan íntegramente a investigación y acceso equitativo.
-🌍 Juntos, hagamos del Alzheimer una enfermedad del pasado. 🌍 
+
+*Este repositorio es parte de una iniciativa global sin fines de lucro.  
+Todos los fondos recaudados se destinan íntegramente a investigación y acceso equitativo.*  
+🌍 **Juntos, hagamos del Alzheimer una enfermedad del pasado.** 🌍
+
+```
 
