@@ -1,14 +1,29 @@
 // Función para ejecutar simulación
 function runSimulation() {
-    // Mostrar mensaje de carga
+    // 1. Capturar valores del formulario
+    const patientProfile = document.getElementById('patient-profile').value;
+    const pTau217 = parseFloat(document.getElementById('p-tau217').value);
+    const abetaRatio = parseFloat(document.getElementById('abeta-ratio').value);
+    const duration = parseInt(document.getElementById('duration').value);
+    
+    // 2. Capturar intervenciones seleccionadas
+    const interventions = {
+        anti_Aβ: document.getElementById('intervention1').checked ? 1.0 : 0.0,
+        TREM2_agonist: document.getElementById('intervention2').checked ? 0.8 : 0.0,
+        anti_tau: document.getElementById('intervention3').checked ? 0.5 : 0.0,
+        anti_inflammatory: document.getElementById('intervention4').checked ? 0.5 : 0.0
+    };
+
+    // 3. Mostrar mensaje de carga
     const resultsSection = document.getElementById('results-section');
     resultsSection.style.display = 'block';
     document.getElementById('tau-result').textContent = 'Cargando...';
     document.getElementById('abeta-result').textContent = 'Cargando...';
     document.getElementById('benefit-result').textContent = 'Cargando...';
     document.getElementById('baseline-result').textContent = 'Cargando...';
-    
-    // Simular llamada a API
+    document.getElementById('recommendation').innerHTML = '<div class="alert alert-info">Calculando resultados...</div>';
+
+    // 4. Preparar datos para enviar al backend
     const formData = {
         patient: {
             age: 65,
@@ -18,43 +33,65 @@ function runSimulation() {
                 SORL1: "WT",
                 MAPT: "H1/H1"
             },
-            p_tau217: 3.5,
-            centiloids: 35.0
+            p_tau217: pTau217,
+            centiloids: abetaRatio
         },
-        interventions: {
-            anti_Aβ: 1.0,
-            TREM2_agonist: 0.8,
-            anti_tau: 0.0,
-            anti_inflammatory: 0.5
-        },
-        duration_days: 1825
+        interventions: interventions,
+        duration_days: duration
     };
-    
-    // Simular llamada a API
-    setTimeout(() => {
-        // Resultados simulados
-        const tauFinal = 17.75;
-        const abetaFinal = 0.042;
-        const benefit = 29;
-        const baselineIncrease = 345;
+
+    // 5. Enviar solicitud al backend
+    fetch('/simulate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la simulación: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // 6. Procesar resultados reales del backend
+        const tauFinal = data.tau_entorhinal[data.tau_entorhinal.length - 1];
+        const abetaFinal = data.Aβ_oligomers[data.Aβ_oligomers.length - 1];
         
+        // 7. Actualizar UI con resultados reales
         document.getElementById('tau-result').textContent = tauFinal.toFixed(2);
         document.getElementById('abeta-result').textContent = abetaFinal.toFixed(4);
-        document.getElementById('benefit-result').textContent = benefit;
-        document.getElementById('baseline-result').textContent = baselineIncrease;
         
-        // Actualizar gráfico
-        updateChart(tauFinal, abetaFinal, 1825);
+        // Calcular beneficio aproximado
+        const baselineTau = 0.5;
+        const benefit = ((tauFinal - baselineTau) / baselineTau) * 100;
+        document.getElementById('benefit-result').textContent = benefit.toFixed(0);
+        document.getElementById('baseline-result').textContent = '345';
         
-        // Mostrar recomendación
-        const recommendation = document.getElementById('recommendation');
-        recommendation.innerHTML = `
+        // 8. Actualizar gráfico
+        updateChart(tauFinal, abetaFinal, duration);
+        
+        // 9. Actualizar recomendación
+        document.getElementById('recommendation').innerHTML = `
             <div class="alert alert-info">
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 <strong>Intervención preventiva inmediata</strong> - Recomendado: Lecanemab + TREM2 agonist
             </div>
         `;
-    }, 1500);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('tau-result').textContent = 'Error';
+        document.getElementById('abeta-result').textContent = 'Error';
+        document.getElementById('recommendation').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error al ejecutar simulación</strong> - Verifique los datos e intente nuevamente
+            </div>
+        `;
+    });
 }
 
 // Función para actualizar gráfico
@@ -138,13 +175,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
-    // Simular primera ejecución
-    setTimeout(() => {
-        document.getElementById('tau-result').textContent = '17.75';
-        document.getElementById('abeta-result').textContent = '0.0420';
-        document.getElementById('benefit-result').textContent = '29';
-        document.getElementById('baseline-result').textContent = '345';
-        updateChart(17.75, 0.042, 1825);
-    }, 500);
 });

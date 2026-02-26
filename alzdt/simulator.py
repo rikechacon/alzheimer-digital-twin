@@ -1,187 +1,149 @@
 """
 Simulador de Proteostasis para Alzheimer Digital Twin
-Modela dinámicas de Aβ, tau, microglía y neuroinflamación
 """
 
 import numpy as np
-from scipy.integrate import solve_ivp, trapezoid  # ✅ Compatible con NumPy 2.0
-from typing import Dict, Tuple, Optional, List
-from .connectivity import BrainConnectivityGraph
-
+import scipy.integrate as integrate
+from typing import Dict, Tuple, Any, List
 
 class ProteostasisParameters:
-    """Parámetros del modelo de proteostasis con modulación genética"""
+    """Parámetros del sistema de proteostasis"""
     
     def __init__(self, genotype: Dict[str, str], age: float):
-        # Parámetros base
-        self.k_prod_Aβ_base = 1.2e-3    # producción Aβ monómero (nM/h)
-        self.k_agg_nuc = 2.5e-5         # nucleación (nM⁻¹h⁻¹)
-        self.k_agg_elong = 1.8e-3       # elongación (nM⁻¹h⁻¹)
-        self.k_clear_mon = 8.5e-3       # clearance monómero (h⁻¹)
-        self.k_clear_oligo = 4.2e-3     # clearance oligómero (h⁻¹)
-        
-        self.k_prod_tau_base = 9.8e-4   # producción tau monómero (nM/h)
-        self.k_phosph = 6.7e-4          # fosforilación (h⁻¹)
-        self.k_clear_tau = 7.3e-4       # clearance tau (h⁻¹)
-        
-        self.D_tau = 0.08               # difusión tau (mm²/h)
-        self.k_act_micro_base = 1.5e-3  # activación microglía (nM⁻¹h⁻¹)
-        self.k_res_micro = 8.2e-4       # resolución inflamación (h⁻¹)
-        self.β_prod_IL1 = 2.1e-2        # producción IL-1β (pg/mL/h)
-        self.β_clear_IL1 = 1.7e-2       # clearance IL-1β (h⁻¹)
-        
-        # Modulación genética
         self.genotype = genotype
         self.age = age
-        self.apply_genetic_modulation()
-        self.apply_age_modulation()
-    
-    def apply_genetic_modulation(self):
-        """Modula parámetros según genotipo del paciente"""
-        if self.genotype.get('APOE') == 'ε4/ε4':
-            self.k_prod_Aβ_base *= 1.8
-            self.k_clear_mon *= 0.6
-            self.k_clear_oligo *= 0.5
-        
-        if self.genotype.get('TREM2') == 'R47H':
-            self.k_act_micro_base *= 0.4
-        
-        if self.genotype.get('SORL1') == 'LOF':
-            self.k_prod_Aβ_base *= 1.5
-    
-    def apply_age_modulation(self):
-        """Modula parámetros según edad"""
-        age_factor = (self.age - 50) / 30
-        
-        self.k_clear_mon *= max(0.5, 1.0 - 0.3 * age_factor)
-        self.k_clear_oligo *= max(0.4, 1.0 - 0.4 * age_factor)
-        self.k_clear_tau *= max(0.4, 1.0 - 0.4 * age_factor)
-        
-        self.k_prod_Aβ_base *= (1.0 + 0.2 * age_factor)
-        self.k_prod_tau_base *= (1.0 + 0.15 * age_factor)
+        # Ajustes basados en el genotipo
+        self.APOE_factor = 1.0
+        if 'APOE' in genotype:
+            if genotype['APOE'] == 'ε4/ε4':
+                self.APOE_factor = 2.0
+            elif genotype['APOE'] == 'ε3/ε4':
+                self.APOE_factor = 1.5
+        self.TREM2_factor = 1.0
+        if 'TREM2' in genotype and genotype['TREM2'] != 'WT':
+            self.TREM2_factor = 0.8
 
+class BrainConnectivityGraph:
+    """Grafo de conectividad cerebral"""
+    
+    def __init__(self, atlas: str = 'AAL'):
+        self.atlas = atlas
+        # Simular una matriz de conectividad
+        self.connectivity = np.random.rand(100, 100)
+        self.connectivity = self.connectivity / np.max(self.connectivity)
 
 class ProteostasisSimulator:
-    """
-    Simulador completo de proteostasis para Aβ y tau
-    """
+    """Simulador de dinámica de proteostasis para Alzheimer"""
     
     def __init__(self, params: ProteostasisParameters, connectivity: BrainConnectivityGraph):
         self.params = params
         self.connectivity = connectivity
-        self.n_regions = connectivity.n_regions
-        self.initial_state = self._initialize_state()
-    
-    def _initialize_state(self) -> np.ndarray:
-        """Inicializa estado del sistema"""
-        n = self.n_regions
         
-        Aβ_mon_0 = 0.5    # nM
-        Aβ_oligo_0 = 0.01 # nM
-        Aβ_fibr_0 = 0.0   # nM
+        # Parámetros del modelo
+        self.k_A = 0.01 * self.params.APOE_factor
+        self.k_tau = 0.015 * self.params.APOE_factor
+        self.k_TREM2 = 0.02 * self.params.TREM2_factor
+        self.k_inflammatory = 0.005
         
-        tau_0 = np.zeros(n)
-        tau_0[0] = 0.5  # Región entorrinal
-        
-        M_rest_0 = np.ones(n) * 0.8
-        M_act_0 = np.ones(n) * 0.2
-        IL1_0 = np.ones(n) * 0.1
-        
-        return np.concatenate([
-            [Aβ_mon_0, Aβ_oligo_0, Aβ_fibr_0],
-            tau_0,
-            M_rest_0,
-            M_act_0,
-            IL1_0
-        ])
-    
-    def dynamics(self, t: float, X: np.ndarray, interventions: Optional[Dict] = None) -> np.ndarray:
-        """Campo vectorial: dX/dt = F(X, t, interventions)"""
-        n = self.n_regions
-        p = self.params
-        
-        Aβ_mon = X[0]
-        Aβ_oligo = X[1]
-        tau = X[3:3+n]
+    def _ode_system(self, t: float, y: np.ndarray, interventions: Dict[str, float]) -> np.ndarray:
+        """Sistema de EDO para proteostasis"""
+        # y[0:100] = tau en cada región
+        # y[100:200] = Aβ en cada región
+        # y[200] = estado microglial
+        # y[201] = estado inflamatorio
         
         # Aplicar intervenciones
-        k_clear_oligo_eff = p.k_clear_oligo
-        k_clear_tau_eff = p.k_clear_tau
+        k_A = self.k_A * (1 - interventions.get('anti_Aβ', 0.0))
+        k_tau = self.k_tau * (1 - interventions.get('anti_tau', 0.0))
+        k_TREM2 = self.k_TREM2 * (1 + interventions.get('TREM2_agonist', 0.0))
+        k_inflammatory = self.k_inflammatory * (1 - interventions.get('anti_inflammatory', 0.0))
         
-        if interventions:
-            if 'anti_Aβ' in interventions:
-                dose = interventions['anti_Aβ']
-                k_clear_oligo_eff *= (1.0 + 0.8 * dose)
-            
-            if 'TREM2_agonist' in interventions:
-                dose = interventions['TREM2_agonist']
-                k_clear_tau_eff *= (1.0 + 0.6 * dose)
+        # Calcular dinámica
+        tau = y[0:100]
+        Aβ = y[100:200]
+        microglial = y[200]
+        inflammatory = y[201]
         
-        # Dinámica simplificada de Aβ
-        dAβ_mon_dt = p.k_prod_Aβ_base - p.k_agg_nuc * Aβ_mon**2 - p.k_clear_mon * Aβ_mon
-        dAβ_oligo_dt = p.k_agg_nuc * Aβ_mon**2 - k_clear_oligo_eff * Aβ_oligo
+        # Propagación de tau
+        d_tau = np.zeros(100)
+        for i in range(100):
+            d_tau[i] = k_tau * tau[i] + np.dot(self.connectivity[i, :], tau) - 0.001 * tau[i]
         
-        # Dinámica simplificada de tau (solo región entorrinal para MVP)
-        dtau_dt = np.zeros(n)
-        dtau_dt[0] = (p.k_prod_tau_base + 0.3 * Aβ_oligo) - p.k_clear_tau * tau[0]
+        # Propagación de Aβ
+        d_Aβ = np.zeros(100)
+        for i in range(100):
+            d_Aβ[i] = k_A * Aβ[i] + np.dot(self.connectivity[i, :], Aβ) - 0.0005 * Aβ[i]
         
-        # Estados dummy para completar vector (M_rest, M_act, IL1)
-        dummy_states = np.zeros(3 * n)
+        # Dinámica microglial
+        d_microglial = k_TREM2 * (1 - microglial) - 0.001 * microglial
         
-        return np.concatenate([
-            [dAβ_mon_dt, dAβ_oligo_dt, 0.0],  # Aβ fibrilar fijo en 0 para MVP
-            dtau_dt,
-            dummy_states
-        ])
+        # Dinámica inflamatoria
+        d_inflammatory = k_inflammatory * (1 - inflammatory) - 0.0005 * inflammatory
+        
+        return np.concatenate([d_tau, d_Aβ, [d_microglial], [d_inflammatory]])
     
-    def simulate(
-        self,
-        t_span: Tuple[float, float] = (0, 3650),
-        dt: float = 24.0,
-        interventions: Optional[Dict[str, float]] = None
-    ) -> Dict[str, np.ndarray]:
-        """Simula la dinámica de proteostasis - CORREGIDO para evitar errores de redondeo"""
-        # ✅ CORRECCIÓN: Usar linspace para garantizar que todos los puntos estén dentro de t_span
-        n_steps = int(np.ceil((t_span[1] - t_span[0]) / dt)) + 1
-        t_eval = np.linspace(t_span[0], t_span[1], n_steps)
+    def simulate(self, t_span: Tuple[float, float], dt: float, 
+                interventions: Dict[str, float] = None) -> Dict[str, np.ndarray]:
+        """Simular la dinámica de proteostasis"""
+        if interventions is None:
+            interventions = {
+                'anti_Aβ': 0.0,
+                'TREM2_agonist': 0.0,
+                'anti_tau': 0.0,
+                'anti_inflammatory': 0.0
+            }
         
-        sol = solve_ivp(
-            fun=lambda t, X: self.dynamics(t, X, interventions),
-            t_span=t_span,
-            y0=self.initial_state,
-            t_eval=t_eval,  # ✅ Ahora garantizado dentro de t_span
-            method='RK45',
-            rtol=1e-6,
-            atol=1e-9
+        # Condiciones iniciales
+        y0 = np.zeros(202)
+        y0[0] = 0.5  # Tau inicial en región entorrinal
+        y0[100] = 0.01  # Aβ inicial
+        y0[200] = 0.1  # Microglial
+        y0[201] = 0.05  # Inflamatorio
+        
+        # Tiempo
+        time = np.arange(t_span[0], t_span[1] + dt, dt)
+        
+        # Resolver sistema
+        results = integrate.solve_ivp(
+            lambda t, y: self._ode_system(t, y, interventions),
+            t_span,
+            y0,
+            t_eval=time,
+            method='LSODA'
         )
         
-        if not sol.success:
-            raise RuntimeError(f"Integración fallida: {sol.message}")
+        # Extraer resultados
+        time = results.t
+        tau = results.y[0:100, :].T
+        Aβ = results.y[100:200, :].T
+        microglial = results.y[200, :]
+        inflammatory = results.y[201, :]
         
-        n = self.n_regions
-        X = sol.y.T
+        # Calcular métricas globales
+        tau_entorhinal = tau[:, 0]  # Tau en región entorrinal
+        Aβ_oligo = np.mean(Aβ, axis=1)
         
         return {
-            'time': sol.t,
-            'Aβ_mon': X[:, 0],
-            'Aβ_oligo': X[:, 1],
-            'Aβ_fibr': X[:, 2],
-            'tau': X[:, 3:3+n],
-            'M_rest': X[:, 3+n:3+2*n],
-            'M_act': X[:, 3+2*n:3+3*n],
-            'IL1': X[:, 3+3*n:3+4*n]
+            'time': time,
+            'tau': tau,
+            'Aβ_oligo': Aβ_oligo,
+            'microglial': microglial,
+            'inflammatory': inflammatory,
+            'tau_entorhinal': tau_entorhinal
         }
     
-    def calculate_benefit(
-        self,
-        baseline: Dict[str, np.ndarray],
-        treated: Dict[str, np.ndarray],
-        metric: str = 'tau_entorhinal'
-    ) -> float:
-        """Calcula beneficio de intervención - CORREGIDO para NumPy 2.0"""
+    def calculate_benefit(self, baseline: Dict[str, np.ndarray], 
+                         treated: Dict[str, np.ndarray], 
+                         metric: str = 'tau_entorhinal') -> float:
+        """Calcular beneficio de la intervención"""
+        # Calcular la integral de la métrica
         if metric == 'tau_entorhinal':
-            # ✅ CORRECCIÓN: Reemplazar np.trapz con scipy.integrate.trapezoid
-            AUC_baseline = trapezoid(baseline['tau'][:, 0], baseline['time'])
-            AUC_treated = trapezoid(treated['tau'][:, 0], treated['time'])
-            return (AUC_baseline - AUC_treated) / AUC_baseline * 100
-        return 0.0
+            baseline_int = np.trapezoid(baseline['tau_entorhinal'], baseline['time'])
+            treated_int = np.trapezoid(treated['tau_entorhinal'], treated['time'])
+        else:
+            baseline_int = np.trapezoid(baseline[metric], baseline['time'])
+            treated_int = np.trapezoid(treated[metric], treated['time'])
+        
+        # Calcular beneficio
+        benefit = (baseline_int - treated_int) / baseline_int * 100
+        return benefit

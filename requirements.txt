@@ -1,53 +1,7 @@
-# Alzheimer Digital Twin - Dependencias Principales
-
-# Core científico
-numpy>=1.24.0
-scipy>=1.10.0
-pandas>=2.0.0
-torch>=2.1.0
-jax>=0.4.16
-jaxlib>=0.4.16
-
-# Modelado y optimización
-scikit-learn>=1.3.0
-pygmo>=2.19.0
-SALib>=1.4.5
-cvxpy>=1.3.0
-
-# Procesamiento de imágenes médicas
-nibabel>=5.1.0
-monai>=1.2.0
-itk>=5.3.0
-
-# API y backend
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.0.0
-python-multipart>=0.0.6
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-
-# Base de datos
-sqlalchemy>=2.0.0
-psycopg2-binary>=2.9.0
-redis>=5.0.0
-
-# Monitoreo y logging
-prometheus-client>=0.18.0
-
-# Utilidades
-python-dotenv>=1.0.0
-pyyaml>=6.0
-requests>=2.31.0
-aiohttp>=3.9.0
-websockets>=12.0
-
-# Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.1.0
-
-# Documentación
-mkdocs>=1.5.0
-mkdocs-material>=9.0.0
-mkdocstrings[python]>=0.24.0
+numpy==2.4.2
+scipy==1.14.1
+fastapi==0.115.0
+uvicorn==0.29.0
+pydantic==2.9.2
+matplotlib==3.9.0
+pandas==2.2.2
