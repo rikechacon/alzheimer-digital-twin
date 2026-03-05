@@ -19,16 +19,12 @@ class ProteostasisParameters:
         if 'TREM2' in genotype and genotype['TREM2'] != 'WT':
             self.TREM2_factor = 0.8
 
-class BrainConnectivityGraph:
-    def __init__(self, atlas: str = 'AAL'):
-        self.atlas = atlas
-        self.connectivity = np.random.rand(100, 100)
-        self.connectivity = self.connectivity / np.max(self.connectivity)
-
 class ProteostasisSimulator:
-    def __init__(self, params: ProteostasisParameters, connectivity: BrainConnectivityGraph):
+    def __init__(self, params: ProteostasisParameters, connectivity: Any):
         self.params = params
-        self.connectivity = connectivity
+        
+        # ¡LA SOLUCIÓN! Usar la función get_connectivity() de tu clase original
+        self.connectivity = connectivity.get_connectivity()
         
         self.k_A = 0.01 * self.params.APOE_factor
         self.k_tau = 0.015 * self.params.APOE_factor
@@ -72,7 +68,6 @@ class ProteostasisSimulator:
         y0[200] = 0.1
         y0[201] = 0.05
         
-        # CORRECCIÓN DEL ERROR 500: Usando linspace
         num_steps = int((t_span[1] - t_span[0]) / dt) + 1
         time = np.linspace(t_span[0], t_span[1], num=num_steps)
         
@@ -97,6 +92,7 @@ class ProteostasisSimulator:
         }
     
     def calculate_benefit(self, baseline: Dict[str, np.ndarray], treated: Dict[str, np.ndarray], metric: str = 'tau_entorhinal') -> float:
-        baseline_int = np.trapezoid(baseline[metric] if metric != 'tau_entorhinal' else baseline['tau_entorhinal'], baseline['time'])
-        treated_int = np.trapezoid(treated[metric] if metric != 'tau_entorhinal' else treated['tau_entorhinal'], treated['time'])
+        trapz_func = np.trapezoid if hasattr(np, 'trapezoid') else np.trapz
+        baseline_int = trapz_func(baseline[metric] if metric != 'tau_entorhinal' else baseline['tau_entorhinal'], baseline['time'])
+        treated_int = trapz_func(treated[metric] if metric != 'tau_entorhinal' else treated['tau_entorhinal'], treated['time'])
         return (baseline_int - treated_int) / baseline_int * 100
