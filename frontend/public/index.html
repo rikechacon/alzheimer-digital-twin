@@ -21,7 +21,19 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/"><i class="fas fa-brain me-2"></i>Alzheimer Digital Twin</a>
+            <a class="navbar-brand" href="/"><i class="fas fa-brain me-2 text-primary"></i>Alzheimer Digital Twin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active fw-bold text-primary" href="/"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/simulations"><i class="fas fa-flask me-1"></i>Simulaciones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/protocolo-clinico"><i class="fas fa-file-medical me-1"></i>Protocolo Clínico</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/documentation"><i class="fas fa-book me-1"></i>Documentación</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/api-endpoints"><i class="fas fa-code me-1"></i>API</a></li>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -31,24 +43,64 @@
                 <div class="card">
                     <div class="card-header bg-light"><i class="fas fa-clock me-2"></i>Simulación en Tiempo Real</div>
                     <div class="card-body">
+                        
                         <div class="mb-3">
-                            <label class="form-label">Perfil del Paciente</label>
-                            <select class="form-select" id="patient-profile">
-                                <option value="1">María González (Alto Riesgo)</option>
-                                <option value="2">Carlos Pérez (Riesgo Moderado)</option>
-                                <option value="3">Ana López (Bajo Riesgo)</option>
-                            </select>
+                            <label class="form-label fw-bold">Perfil del Paciente</label>
+                            <div class="input-group">
+                                <select class="form-select border-primary" id="patient-profile">
+                                    <option value="1">María González (Alto Riesgo)</option>
+                                    <option value="2">Carlos Pérez (Riesgo Moderado)</option>
+                                    <option value="3">Ana López (Bajo Riesgo)</option>
+                                </select>
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#newPatientModal">
+                                    <i class="fas fa-plus"></i> Nuevo
+                                </button>
+                            </div>
                         </div>
-                        <div class="row mb-3">
+
+                        <div class="modal fade" id="newPatientModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Crear Gemelo Digital</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-2"><label class="form-label">Nombre del Paciente</label><input type="text" id="np-name" class="form-control" placeholder="Ej. Juan Pérez"></div>
+                                        <div class="row mb-2">
+                                            <div class="col-6"><label class="form-label">Edad</label><input type="number" id="np-age" class="form-control" value="65"></div>
+                                            <div class="col-6"><label class="form-label">Genotipo APOE</label>
+                                                <select id="np-apoe" class="form-select"><option value="ε3/ε3">ε3/ε3 (Normal)</option><option value="ε3/ε4">ε3/ε4 (Riesgo Mod.)</option><option value="ε4/ε4">ε4/ε4 (Alto Riesgo)</option></select>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-4"><label class="form-label small">p-tau217</label><input type="number" id="np-tau" class="form-control" value="2.0" step="0.1"></div>
+                                            <div class="col-4"><label class="form-label small">Aβ42/40</label><input type="number" id="np-abeta" class="form-control" value="0.08" step="0.01"></div>
+                                            <div class="col-4"><label class="form-label small">GFAP</label><input type="number" id="np-gfap" class="form-control" value="130"></div>
+                                        </div>
+                                        <hr>
+                                        <div id="json-result-box" style="display:none;">
+                                            <label class="form-label text-success fw-bold">JSON Generado:</label>
+                                            <textarea id="np-json-output" class="form-control font-monospace" rows="4" readonly></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn btn-primary" onclick="crearPaciente()" data-bs-dismiss="modal">Generar y Cargar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3 mt-3">
                             <div class="col-md-6">
-                                <label class="form-label">Biomarcadores</label>
+                                <label class="form-label">Biomarcadores Base</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="p-tau217" placeholder="p-tau217">
                                     <input type="text" class="form-control" id="abeta-ratio" placeholder="Aβ42/40">
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Intervenciones</label>
+                                <label class="form-label">Intervenciones Terapéuticas</label>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" id="intervention1" checked><label class="form-check-label">Lecanemab (anti-Aβ)</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" id="intervention2" checked><label class="form-check-label">TREM2 agonist</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" id="intervention3"><label class="form-check-label">Anti-tau</label></div>
@@ -56,11 +108,10 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Duración</label>
+                            <label class="form-label">Duración de la Simulación</label>
                             <select class="form-select" id="duration">
                                 <option value="365">1 año (365 días)</option>
                                 <option value="730">2 años (730 días)</option>
-                                <option value="1095">3 años (1095 días)</option>
                             </select>
                         </div>
                         <button type="button" class="btn btn-primary w-100" id="simulate-button">Ejecutar Simulación</button>
@@ -68,7 +119,7 @@
                 </div>
                 
                 <div class="card mt-4">
-                    <div class="card-header bg-light"><i class="fas fa-chart-line me-2"></i>Resultados</div>
+                    <div class="card-header bg-light"><i class="fas fa-chart-line me-2"></i>Resultados de la Dinámica</div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-4"><canvas id="simulationChart" class="simulation-chart"></canvas></div>
@@ -101,7 +152,137 @@
             </div>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/app.js"></script>
+    <script>
+        let riskChartInstance = null;
+        let simulationChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const select = document.getElementById('patient-profile');
+            let savedPatients = JSON.parse(localStorage.getItem('customPatients')) || {};
+            for (const [id, patient] of Object.entries(savedPatients)) {
+                const newOption = document.createElement('option');
+                newOption.value = id;
+                newOption.text = patient.name + " (Personalizado)";
+                select.appendChild(newOption);
+            }
+            select.dispatchEvent(new Event('change'));
+        });
+
+        function crearPaciente() {
+            const name = document.getElementById('np-name').value || "Paciente Anónimo";
+            const age = document.getElementById('np-age').value;
+            const apoe = document.getElementById('np-apoe').value;
+            const tau = parseFloat(document.getElementById('np-tau').value);
+            const abeta = parseFloat(document.getElementById('np-abeta').value);
+            const gfap = parseInt(document.getElementById('np-gfap').value);
+            const newId = "custom_" + Date.now();
+
+            let risk = [33, 33, 34];
+            if(apoe === "ε4/ε4") risk = [80, 15, 5]; 
+            if(apoe === "ε3/ε4") risk = [40, 40, 20]; 
+            if(apoe === "ε3/ε3") risk = [10, 20, 70]; 
+
+            const newPatientJson = {
+                "id": newId, "name": name, "age": age, 
+                "genotype": {"APOE": apoe, "TREM2": "WT"}, 
+                "p_tau217": tau, "abeta_ratio": abeta, "gfap": gfap, 
+                "risk_levels": risk
+            };
+
+            let savedPatients = JSON.parse(localStorage.getItem('customPatients')) || {};
+            savedPatients[newId] = newPatientJson;
+            localStorage.setItem('customPatients', JSON.stringify(savedPatients));
+
+            document.getElementById('json-result-box').style.display = 'block';
+            document.getElementById('np-json-output').value = JSON.stringify(newPatientJson, null, 2);
+            
+            const select = document.getElementById('patient-profile');
+            const newOption = document.createElement('option');
+            newOption.value = newId;
+            newOption.text = name + " (Personalizado)";
+            select.appendChild(newOption);
+            select.value = newId;
+            select.dispatchEvent(new Event('change'));
+        }
+
+        document.getElementById('patient-profile')?.addEventListener('change', async (e) => {
+            const patientId = e.target.value;
+            if (!patientId) return;
+            try {
+                let profile;
+                if (patientId.startsWith('custom_')) {
+                    profile = (JSON.parse(localStorage.getItem('customPatients')) || {})[patientId];
+                } else {
+                    const response = await fetch(`/api/patient/${patientId}`);
+                    profile = await response.json();
+                }
+
+                document.querySelector('.patient-name').textContent = profile.name;
+                document.querySelector('.patient-details').textContent = `${profile.age} años • APOE ${profile.genotype.APOE}`;
+                document.querySelector('.p-tau217').textContent = profile.p_tau217;
+                document.querySelector('.abeta42-40').textContent = profile.abeta_ratio;
+                document.querySelector('.gfap').textContent = profile.gfap;
+                document.getElementById('p-tau217').value = profile.p_tau217;
+                document.getElementById('abeta-ratio').value = profile.abeta_ratio;
+                
+                const ctx = document.getElementById('riskChart').getContext('2d');
+                if (riskChartInstance) riskChartInstance.destroy();
+                riskChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ['Alto', 'Medio', 'Bajo'], datasets: [{ data: profile.risk_levels, backgroundColor: ['#f5222d', '#fa8c16', '#52c41a'], borderWidth: 0 }] },
+                    options: { cutout: '70%', plugins: { legend: { display: false } } }
+                });
+            } catch (err) {}
+        });
+
+        document.getElementById('simulate-button')?.addEventListener('click', async () => {
+            const patientId = document.getElementById('patient-profile').value;
+            const duration = parseInt(document.getElementById('duration').value);
+            document.getElementById('recommendation').innerHTML = '<div class="alert alert-info">Calculando dinámica...</div>';
+            
+            try {
+                let patientData;
+                if (patientId.startsWith('custom_')) {
+                    patientData = (JSON.parse(localStorage.getItem('customPatients')) || {})[patientId];
+                } else {
+                    const patientRes = await fetch(`/api/patient/${patientId}`);
+                    patientData = await patientRes.json();
+                }
+
+                const formData = {
+                    patient: patientData,
+                    interventions: {
+                        anti_Aβ: document.getElementById('intervention1').checked ? 1.0 : 0.0,
+                        TREM2_agonist: document.getElementById('intervention2').checked ? 0.8 : 0.0,
+                        anti_tau: document.getElementById('intervention3').checked ? 0.5 : 0.0,
+                        anti_inflammatory: document.getElementById('intervention4').checked ? 0.5 : 0.0
+                    },
+                    duration_days: duration
+                };
+                
+                const simRes = await fetch('/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+                const resultData = await simRes.json();
+                
+                document.getElementById('tau-result').textContent = resultData.tau_entorhinal[resultData.tau_entorhinal.length - 1].toFixed(2);
+                document.getElementById('abeta-result').textContent = resultData.Aβ_oligomers[resultData.Aβ_oligomers.length - 1].toFixed(4);
+                
+                const ctx = document.getElementById('simulationChart').getContext('2d');
+                if (simulationChartInstance) simulationChartInstance.destroy();
+                simulationChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: resultData.time_days.map(t => `${Math.round(t)}d`),
+                        datasets: [
+                            { label: 'Carga Tau', data: resultData.tau_entorhinal, borderColor: '#1890ff', backgroundColor: 'rgba(24,144,255,0.1)' },
+                            { label: 'Carga Aβ', data: resultData.Aβ_oligomers, borderColor: '#52c41a', backgroundColor: 'rgba(82,196,26,0.1)' }
+                        ]
+                    }, options: { responsive: true, maintainAspectRatio: false }
+                });
+                document.getElementById('recommendation').innerHTML = '<div class="alert alert-success">¡Simulación completada!</div>';
+            } catch (error) {}
+        });
+    </script>
 </body>
 </html>

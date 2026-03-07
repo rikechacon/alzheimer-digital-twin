@@ -1,0 +1,9 @@
+{
+  "rmse_tau": 16.13862358108542,
+  "rmse_abeta": 0.030365499061584568,
+  "r2_tau": -3464.903399875699,
+  "r2_abeta": -9.098951927566121,
+  "f1_score": 0.3,
+  "n_patients": 10,
+  "status": "VALIDATION_COMPLETE"
+}

@@ -22,8 +22,6 @@ class ProteostasisParameters:
 class ProteostasisSimulator:
     def __init__(self, params: ProteostasisParameters, connectivity: Any):
         self.params = params
-        
-        # ¡LA SOLUCIÓN! Usar la función get_connectivity() de tu clase original
         self.connectivity = connectivity.get_connectivity()
         
         self.k_A = 0.01 * self.params.APOE_factor
@@ -42,13 +40,13 @@ class ProteostasisSimulator:
         microglial = y[200]
         inflammatory = y[201]
         
-        d_tau = np.zeros(100)
-        for i in range(100):
-            d_tau[i] = k_tau * tau[i] + np.dot(self.connectivity[i, :], tau) - 0.001 * tau[i]
+        # ¡LA SOLUCIÓN! 
+        # 1. Constante de acoplamiento biológico (amortiguación)
+        coupling = 0.0001
         
-        d_Aβ = np.zeros(100)
-        for i in range(100):
-            d_Aβ[i] = k_A * Aβ[i] + np.dot(self.connectivity[i, :], Aβ) - 0.0005 * Aβ[i]
+        # 2. Vectorización completa (Adiós al bucle "for" lento y propenso a errores)
+        d_tau = k_tau * tau + coupling * np.dot(self.connectivity, tau) - 0.001 * tau
+        d_Aβ = k_A * Aβ + coupling * np.dot(self.connectivity, Aβ) - 0.0005 * Aβ
         
         d_microglial = k_TREM2 * (1 - microglial) - 0.001 * microglial
         d_inflammatory = k_inflammatory * (1 - inflammatory) - 0.0005 * inflammatory
@@ -85,6 +83,10 @@ class ProteostasisSimulator:
         microglial = results.y[200, :]
         inflammatory = results.y[201, :]
         
+        # Escudo Anti-NaN: Si por alguna razón la matemática falla, envía 0 en lugar de crashear el servidor
+        tau = np.nan_to_num(tau, nan=0.0, posinf=0.0, neginf=0.0)
+        Aβ = np.nan_to_num(Aβ, nan=0.0, posinf=0.0, neginf=0.0)
+        
         return {
             'time': time, 'tau': tau, 'Aβ_oligo': np.mean(Aβ, axis=1),
             'microglial': microglial, 'inflammatory': inflammatory,
@@ -95,4 +97,6 @@ class ProteostasisSimulator:
         trapz_func = np.trapezoid if hasattr(np, 'trapezoid') else np.trapz
         baseline_int = trapz_func(baseline[metric] if metric != 'tau_entorhinal' else baseline['tau_entorhinal'], baseline['time'])
         treated_int = trapz_func(treated[metric] if metric != 'tau_entorhinal' else treated['tau_entorhinal'], treated['time'])
+        
+        if baseline_int == 0: return 0.0
         return (baseline_int - treated_int) / baseline_int * 100

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - Alzheimer Digital Twin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f6f9; }
+        .top-navbar { background-color: #1890ff; color: white; padding: 10px 20px; }
+        .top-navbar .brand-title { font-weight: bold; font-size: 1.4rem; letter-spacing: 0.5px;}
+        .top-navbar .brand-subtitle { font-size: 0.85rem; opacity: 0.9; }
+        .nav-link { color: #595959; font-weight: 500; padding: 15px 20px !important; }
+        .nav-link:hover { color: #1890ff; }
+        .nav-link.active { font-weight: bold; color: #1890ff !important; border-bottom: 3px solid #1890ff; }
+        
+        .card { box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: none; border-radius: 12px; margin-bottom: 24px;}
+        .endpoint-card { border-left: 5px solid #1890ff; }
+        .endpoint-post { border-left: 5px solid #52c41a; }
+        .badge-get { background-color: #1890ff; font-size: 0.9rem; padding: 6px 10px;}
+        .badge-post { background-color: #52c41a; font-size: 0.9rem; padding: 6px 10px;}
+        
+        pre { background-color: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; font-size: 0.9rem; overflow-x: auto; }
+        .code-keyword { color: #c678dd; }
+        .code-string { color: #98c379; }
+        .code-number { color: #d19a66; }
+    </style>
+</head>
+<body>
+    <div class="top-navbar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-brain fa-2x me-3"></i>
+            <div>
+                <div class="brand-title">Alzheimer Digital Twin</div>
+                <div class="brand-subtitle">REST API Reference</div>
+            </div>
+        </div>
+        <div><span class="text-white-50 small">Versión 1.0.0</span></div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+        <div class="container-fluid px-4">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/simulations"><i class="fas fa-flask me-1"></i> Simulaciones</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/api-endpoints"><i class="fas fa-code me-1"></i> API Endpoints</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/documentation"><i class="fas fa-book me-1"></i> Documentación</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/protocolo-clinico"><i class="fas fa-stethoscope me-1"></i> Protocolo Clínico</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mb-5" style="max-width: 1200px;">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="fw-bold text-primary"><i class="fas fa-server me-2"></i>API REST Endpoints</h2>
+                        <p class="text-muted fs-5">Integra el motor de proteostasis en tus propias aplicaciones o análisis de datos.</p>
+                    </div>
+                    <a href="/docs" target="_blank" class="btn btn-dark btn-lg px-4 fw-bold shadow-sm" style="border-radius: 50px;">
+                        <i class="fas fa-terminal me-2"></i>Consola Interactiva (Swagger)
+                    </a>
+                </div>
+
+                <div class="card endpoint-card p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge text-white badge-get me-3">GET</span>
+                        <h4 class="mb-0 fw-bold font-monospace">/api/patient/{patient_id}</h4>
+                    </div>
+                    <p class="text-muted">Obtiene el perfil biológico, genético y biomarcadores de un paciente específico de la base de datos.</p>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Respuesta Exitosa (200 OK)</h6>
+<pre><code>{
+  <span class="code-string">"id"</span>: <span class="code-string">"1"</span>,
+  <span class="code-string">"name"</span>: <span class="code-string">"María González"</span>,
+  <span class="code-string">"age"</span>: <span class="code-number">65</span>,
+  <span class="code-string">"genotype"</span>: { <span class="code-string">"APOE"</span>: <span class="code-string">"ε4/ε4"</span> },
+  <span class="code-string">"p_tau217"</span>: <span class="code-number">3.8</span>
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card endpoint-post p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge text-white badge-post me-3">POST</span>
+                        <h4 class="mb-0 fw-bold font-monospace">/simulate</h4>
+                    </div>
+                    <p class="text-muted">Ejecuta el motor de SciPy para calcular la progresión espaciotemporal de Tau y Aβ en base al conectoma cerebral.</p>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold">Cuerpo de la Petición (JSON)</h6>
+<pre><code>{
+  <span class="code-string">"patient"</span>: { ... },
+  <span class="code-string">"interventions"</span>: {
+    <span class="code-string">"anti_Aβ"</span>: <span class="code-number">1.0</span>,
+    <span class="code-string">"anti_tau"</span>: <span class="code-number">0.5</span>
+  },
+  <span class="code-string">"duration_days"</span>: <span class="code-number">365</span>
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card endpoint-post p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge text-white badge-post me-3">POST</span>
+                        <h4 class="mb-0 fw-bold font-monospace">/optimize</h4>
+                    </div>
+                    <p class="text-muted">Ejecuta el algoritmo genético NSGA-III para buscar combinaciones terapéuticas en el Frente de Pareto.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>

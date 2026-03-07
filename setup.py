@@ -33,7 +33,6 @@ setup(
         "numpy>=1.24.0",
         "scipy>=1.10.0",
         "pandas>=2.0.0",
-        "torch>=2.1.0",
         "fastapi>=0.104.0",
         "uvicorn>=0.24.0",
         "pydantic>=2.0.0",
