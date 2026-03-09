@@ -16,6 +16,7 @@
         .simulation-chart { height: 300px; }
         .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         .card-header { background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; }
+        .export-btn { font-size: 0.85rem; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -70,7 +71,11 @@
                                         <div class="row mb-2">
                                             <div class="col-6"><label class="form-label">Edad</label><input type="number" id="np-age" class="form-control" value="65"></div>
                                             <div class="col-6"><label class="form-label">Genotipo APOE</label>
-                                                <select id="np-apoe" class="form-select"><option value="ε3/ε3">ε3/ε3 (Normal)</option><option value="ε3/ε4">ε3/ε4 (Riesgo Mod.)</option><option value="ε4/ε4">ε4/ε4 (Alto Riesgo)</option></select>
+                                                <select id="np-apoe" class="form-select">
+                                                    <option value="ε3/ε3">ε3/ε3 (Normal)</option>
+                                                    <option value="ε3/ε4">ε3/ε4 (Riesgo Mod.)</option>
+                                                    <option value="ε4/ε4">ε4/ε4 (Alto Riesgo)</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="row mb-2">
@@ -119,7 +124,13 @@
                 </div>
                 
                 <div class="card mt-4">
-                    <div class="card-header bg-light"><i class="fas fa-chart-line me-2"></i>Resultados de la Dinámica</div>
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-chart-line me-2"></i>Resultados de la Dinámica</div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary export-btn me-2" onclick="exportarCSV()"><i class="fas fa-file-csv me-1"></i>.CSV</button>
+                            <button class="btn btn-sm btn-outline-secondary export-btn" onclick="exportarPNG()"><i class="fas fa-image me-1"></i>.PNG</button>
+                        </div>
+                    </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-4"><canvas id="simulationChart" class="simulation-chart"></canvas></div>
@@ -157,6 +168,7 @@
     <script>
         let riskChartInstance = null;
         let simulationChartInstance = null;
+        let currentSimulationData = null; // Variable global para guardar los datos exportables
 
         document.addEventListener('DOMContentLoaded', () => {
             const select = document.getElementById('patient-profile');
@@ -234,7 +246,7 @@
                     data: { labels: ['Alto', 'Medio', 'Bajo'], datasets: [{ data: profile.risk_levels, backgroundColor: ['#f5222d', '#fa8c16', '#52c41a'], borderWidth: 0 }] },
                     options: { cutout: '70%', plugins: { legend: { display: false } } }
                 });
-            } catch (err) {}
+            } catch (err) { console.error(err); }
         });
 
         document.getElementById('simulate-button')?.addEventListener('click', async () => {
@@ -265,11 +277,27 @@
                 const simRes = await fetch('/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
                 const resultData = await simRes.json();
                 
+                currentSimulationData = resultData; 
+
                 document.getElementById('tau-result').textContent = resultData.tau_entorhinal[resultData.tau_entorhinal.length - 1].toFixed(2);
                 document.getElementById('abeta-result').textContent = resultData.Aβ_oligomers[resultData.Aβ_oligomers.length - 1].toFixed(4);
                 
                 const ctx = document.getElementById('simulationChart').getContext('2d');
                 if (simulationChartInstance) simulationChartInstance.destroy();
+                
+                // Plugin moderno para asegurar el fondo blanco en la exportación PNG
+                const whiteBackgroundPlugin = {
+                    id: 'custom_canvas_background_color',
+                    beforeDraw: (chart) => {
+                        const ctx = chart.canvas.getContext('2d');
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'destination-over';
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, chart.width, chart.height);
+                        ctx.restore();
+                    }
+                };
+
                 simulationChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -278,11 +306,46 @@
                             { label: 'Carga Tau', data: resultData.tau_entorhinal, borderColor: '#1890ff', backgroundColor: 'rgba(24,144,255,0.1)' },
                             { label: 'Carga Aβ', data: resultData.Aβ_oligomers, borderColor: '#52c41a', backgroundColor: 'rgba(82,196,26,0.1)' }
                         ]
-                    }, options: { responsive: true, maintainAspectRatio: false }
+                    }, 
+                    options: { responsive: true, maintainAspectRatio: false },
+                    plugins: [whiteBackgroundPlugin] 
                 });
+                
                 document.getElementById('recommendation').innerHTML = '<div class="alert alert-success">¡Simulación completada!</div>';
-            } catch (error) {}
+            } catch (error) { 
+                document.getElementById('recommendation').innerHTML = '<div class="alert alert-danger">Error al simular.</div>';
+                console.error(error);
+            }
         });
+
+        // FUNCIONES DE EXPORTACIÓN
+        function exportarPNG() {
+            if (!simulationChartInstance) return alert("Por favor, ejecuta una simulación primero.");
+            const link = document.createElement('a');
+            link.download = `Simulacion_Proteostasis_${Date.now()}.png`;
+            link.href = simulationChartInstance.toBase64Image();
+            link.click();
+        }
+
+        function exportarCSV() {
+            if (!currentSimulationData) return alert("Por favor, ejecuta una simulación primero.");
+            const d = currentSimulationData;
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Tiempo_Dias,Tau_Entorrinal,Abeta_Oligomeros\n";
+            
+            for (let i = 0; i < d.time_days.length; i++) {
+                csvContent += `${d.time_days[i]},${d.tau_entorhinal[i]},${d.Aβ_oligomers[i]}\n`;
+            }
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Datos_Simulacion_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>
