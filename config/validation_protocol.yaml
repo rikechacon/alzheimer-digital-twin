@@ -1,0 +1,31 @@
+# config/validation_protocol.yaml
+validation_strategy:
+  type: temporal_split
+  training_window: [0, 24]   # meses para calibrar
+  validation_window: [24, 48] # meses para validar
+  test_window: [48, 72]      # meses para test final
+
+metrics:
+  primary:
+    - name: MAE_normalized
+      threshold: 0.15  # error <15% del rango clínico
+    - name: concordance_index
+      threshold: 0.75  # capacidad predictiva de progresión
+  
+  secondary:
+    - name: calibration_slope
+      acceptable_range: [0.85, 1.15]
+    - name: coverage_95CI
+      minimum: 0.90
+
+datasets:
+  calibration:
+    source: ADNI
+    inclusion_criteria:
+      - diagnosis: ["CN", "MCI", "AD"]
+      - min_visits: 4
+      - biomarkers: ["ABeta_PET", "Tau_PET", "MRI_vol"]
+  
+  external_validation:
+    source: OASIS-3
+    harmonization: ComBat para corregir diferencias de sitio/scanner
