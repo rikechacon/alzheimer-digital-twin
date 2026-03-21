@@ -1,0 +1,45 @@
+# config/hipaa_compliance.yaml
+encryption:
+  in_transit:
+    tls_version: "1.3"
+    cipher_suites: ["TLS_AES_256_GCM_SHA384", "TLS_CHACHA20_POLY1305_SHA256"]
+    hsts_enabled: true
+    mtls_internal_services: true
+  
+  at_rest:
+    algorithm: "AES-256-GCM"
+    key_management: "AWS KMS / HashiCorp Vault"
+    key_rotation_days: 90
+    field_level_encryption: ["patient_id", "genetic_markers"]
+
+access_control:
+  rbac_enabled: true
+  mfa_required_for: ["admin:audit", "write:bulk_export"]
+  session_timeout_minutes: 15
+  failed_login_lockout: 
+    attempts: 5
+    duration_minutes: 30
+
+audit:
+  log_all_phi_access: true
+  immutable_logs: true
+  log_fields:
+    - timestamp_utc
+    - user_id_hashed
+    - endpoint
+    - action
+    - patient_id_pseudonymized
+    - ip_address_hashed
+  retention_years: 6
+  phi_in_logs: false  # Nunca registrar PHI en texto plano
+
+data_minimization:
+  minimum_necessary_enforcement: true
+  deidentification_for_analytics: "Safe Harbor method"
+  pseudonymization_reversible: false  # Tratar como PHI
+
+incident_response:
+  breach_detection_alerts: true
+  mean_time_to_detect_target_hours: 4
+  backup_encryption: true
+  restore_test_frequency: quarterly
