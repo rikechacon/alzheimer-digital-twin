@@ -1,0 +1,118 @@
+# k8s/production/overview.yaml
+# Arquitectura de referencia para healthcare AI [[33]][[34]]
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: alzheimer-dt-prod
+  labels:
+    compliance: "HIPAA-ready"
+    environment: "production"
+
+---
+# 1. API Gateway con validación JWT y WAF
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: api-gateway
+  namespace: alzheimer-dt-prod
+spec:
+  gatewayClassName: gke-l7-global-external-managed
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 443
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: api-tls-cert
+    allowedRoutes:
+      namespaces:
+        from: Same
+
+---
+# 2. Servicio de Inferencia con auto-scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: inference }
+  template:
+    metadata:
+      labels: { app: inference }
+    spec:
+      containers:
+      - name: fastapi-app
+        image: gcr.io/project/alzheimer-dt:sha-abc123
+        ports: [{ containerPort: 8000 }]
+        resources:
+          requests: { cpu: "500m", memory: "1Gi" }
+          limits: { cpu: "2", memory: "4Gi" }
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: password
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: jwt-key
+        readinessProbe:
+          httpGet: { path: /health/ready, port: 8000 }
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet: { path: /health/live, port: 8000 }
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+---
+# 3. Horizontal Pod Autoscaler con métricas personalizadas
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: inference-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: inference-service
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Pods
+    pods:
+      metric:
+        name: requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "50"
+
+---
+# 4. Monitoreo con Prometheus + Grafana (PHI-safe)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: inference-monitor
+spec:
+  selector:
+    matchLabels: { app: inference }
+  endpoints:
+  - port: metrics
+    path: /metrics
+    scheme: http
+    # ⚠️ Excluir métricas con PHI mediante relabel_configs
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: ".*phi.*|.*patient.*"
+      action: drop
